@@ -1,0 +1,7 @@
+#ifndef Config_h
+#define Config_h
+
+const char *WIFI_SSID = "";
+const char *WIFI_PASSWORD = "";
+
+#endif
