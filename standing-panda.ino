@@ -6,8 +6,8 @@
 #include "src/libs/Desk.h"
 #include "src/libs/LocalESPStorage.h"
 #include "src/libs/ConfigurationMemory.h"
+#include "ApplicationConfig.h"
 #include <Wire.h>
-#include "Config.h"
 
 // Motors
 
