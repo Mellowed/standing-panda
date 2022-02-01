@@ -32,4 +32,4 @@
 *.app
 
 # Configuration File
-# *Config.h
+ApplicationConfig.h
