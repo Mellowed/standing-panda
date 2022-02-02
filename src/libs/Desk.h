@@ -15,10 +15,12 @@
 class Desk
 {
 public:
-    Desk(int enableA, int enableB, int in1, int in2, int in3, int in4, OledManager *oledManager, VL53L0x *distanceSensor, MPU6050 *tiltSensor, WebServer *webServer, ConfigurationMemory *configurationMemory);
+    Desk(int enableA, int enableB, int in1, int in2, OledManager *oledManager, VL53L0x *distanceSensor, MPU6050 *tiltSensor, WebServer *webServer, ConfigurationMemory *configurationMemory);
     void bounce(int duration);
     void up();
+    void up(int ms);
     void down();
+    void down(int ms);
     void stop();
     void leftUp();
     void rightUp();
@@ -34,7 +36,7 @@ public:
     void processWsRequest();            // process the request from client
     void processCommandRequest();       // handle requests command coming from client
     void processConfigurationRequest(); // handle requests command coming from client
-    void setConfigurationItem(int &localVal, int newValue, String nameSpace);
+    void setConfigurationItem(int localVal, int newValue, String nameSpace);
     // Websocket Data
     // Find the required sizing here; https://arduinojson.org/v6/assistant/
     StaticJsonDocument<1024> _wsData;
@@ -57,11 +59,11 @@ public:
     int _pitchLimit = 1;
     int _rollOffset = 0;
     int _pitchOffset = 0;
-    float _pitch; // + forard -down back
-    float _roll;  // neg when down right | positive when leaning left (holes closest to me)
+    float _pitch;
+    float _roll;
 
     // Safety
-    int _safetyEnabled = 1;
+    volatile int _safetyEnabled = 1;
 
     // Configuration Spaces
     const String _PRESET_HEIGHT1 = "PH1";
@@ -96,6 +98,8 @@ private:
         STANDING,
         CALIBRATE,
         GO_TO_HEIGHT,
+        CLIMB_FOR_MS,
+        DESCEND_FOR_MS,
         PRESET_HEIGHT1,
         PRESET_HEIGHT2,
         PRESET_HEIGHT3,
@@ -108,7 +112,7 @@ private:
         MIN_HEIGHT,
         MAX_HEIGHT,
         STOP,
-        DISPLAY_ON_OFF
+        DISPLAY_ON_OFF,
 
     } wsMessageCommands;
 
@@ -120,17 +124,13 @@ private:
     boolean _timedOut;
     boolean _calibrationError;
 
-    // Motor A pins
-    int _enableA;
+    // Motor control pins
     int _in1;
     int _in2;
-    Motor _motorLeft;
-
-    // Motor B pins
+    int _enableA;
     int _enableB;
-    int _in3;
-    int _in4;
     Motor _motorRight;
+    Motor _motorLeft;
 };
 
 #endif

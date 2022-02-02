@@ -1,6 +1,6 @@
 #include "Desk.h"
 
-Desk::Desk(int enableA, int enableB, int in1, int in2, int in3, int in4, OledManager *om, VL53L0x *distanceSensor, MPU6050 *tiltSensor, WebServer *webServer, ConfigurationMemory *configurationMemory)
+Desk::Desk(int enableA, int enableB, int in1, int in2, OledManager *om, VL53L0x *distanceSensor, MPU6050 *tiltSensor, WebServer *webServer, ConfigurationMemory *configurationMemory)
 {
     // Set sensors and manager
     _om = om;
@@ -9,17 +9,15 @@ Desk::Desk(int enableA, int enableB, int in1, int in2, int in3, int in4, OledMan
     _tiltSensor = tiltSensor;
     _configurationMemory = configurationMemory;
 
-    // Set inputs
+    // Set motor controls inputs
     _enableA = enableA;
     _in1 = in1;
     _in2 = in2;
     _enableB = enableB;
-    _in3 = in3;
-    _in4 = in4;
 
     // Create motor objects
     _motorLeft = Motor(enableA, in1, in2);
-    _motorRight = Motor(enableB, in3, in4);
+    _motorRight = Motor(enableB, in1, in2);
 
     // Setup webserver and websockets
     webServer->setWsDataCallback([&](String data)
@@ -195,6 +193,16 @@ void Desk::up()
     _om->goingUp((_currentHeight), _roll, message);
 }
 
+void Desk::up(int ms)
+{
+    updateSensorReadings();
+    _motorLeft.up();
+    _motorRight.up();
+    String message = "Up by " + String(ms) + "cm";
+    _om->goingUp((_currentHeight), _roll, message);
+    delay(ms);
+}
+
 void Desk::down()
 {
     updateSensorReadings();
@@ -202,6 +210,16 @@ void Desk::down()
     _motorRight.down();
     String message = "Down to " + String(_targetHeight) + "cm";
     _om->goingDown(_currentHeight, _roll, message);
+}
+
+void Desk::down(int ms)
+{
+    updateSensorReadings();
+    _motorLeft.down();
+    _motorRight.down();
+    String message = "Down by " + String(ms) + "cm";
+    _om->goingDown(_currentHeight, _roll, message);
+    delay(ms);
 }
 
 void Desk::stop()
@@ -230,7 +248,7 @@ boolean Desk::safetyChecks()
     _safetyChecksPassed = true;
     _calibrationError = false;
     _timedOut = false;
-    Serial.println(_stop);
+
     if (_stop)
     {
         _webServer->notifyClients("ERROR: Stopped by user");
@@ -319,6 +337,9 @@ void Desk::websocketHandler(String data)
     // Sanity print of received data
     Serial.println("Handling request:");
     Serial.println(data);
+
+    // Stop all movements before accepting next request.
+    _stop = true;
 
     // Deserialize the json
     DeserializationError err = deserializeJson(_wsRequest, data);
@@ -421,7 +442,7 @@ void Desk::processConfigurationRequest()
     }
 }
 
-void Desk::setConfigurationItem(int &localVal, int newValue, String nameSpace)
+void Desk::setConfigurationItem(int localVal, int newValue, String nameSpace)
 {
     localVal = _wsRequest["data"]["parameters"].as<int>();
     _configurationMemory->setInt(nameSpace, localVal);
@@ -447,6 +468,14 @@ void Desk::processCommandRequest()
 
     case wsMessageCommands::GO_TO_HEIGHT:
         goToHeight(_wsRequest["data"]["parameters"].as<int>());
+        break;
+
+    case wsMessageCommands::CLIMB_FOR_MS:
+        up(_wsRequest["data"]["parameters"].as<int>());
+        break;
+
+    case wsMessageCommands::DESCEND_FOR_MS:
+        down(_wsRequest["data"]["parameters"].as<int>());
         break;
 
     case wsMessageCommands::PRESET_HEIGHT1:

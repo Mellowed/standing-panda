@@ -12,11 +12,9 @@
 // Motors
 
 #define enA 0
-#define in1 2
-#define in2 14
 #define enB 15
-#define in3 26
-#define in4 13
+#define in1 26
+#define in2 13
 
 // I2c
 
@@ -45,7 +43,7 @@ WebServer webserver(ssid, password, &localESPStorage);
 ConfigurationMemory configurationMemory; // Initialize the persisted configuration with namespace 'cp'
 VL53L0x tof(&i2c);
 MPU6050 tiltSensor(&i2c);
-Desk deskControls(enA, enB, in1, in2, in3, in4, &om, &tof, &tiltSensor, &webserver, &configurationMemory);
+Desk deskControls(enA, enB, in1, in2, &om, &tof, &tiltSensor, &webserver, &configurationMemory);
 
 void setup()
 {
@@ -86,7 +84,7 @@ void loop()
   loopCount++;
   if (loopCount == 10)
   {
-    deskControls.updateSensorReadings();
+    // deskControls.updateSensorReadings();
     loopCount = 0;
   }
 

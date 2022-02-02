@@ -19,23 +19,27 @@ Motor::Motor(int enable, int in1, int in2)
 
 void Motor::stop()
 {
-    digitalWrite(_in1, LOW);
-    digitalWrite(_in2, LOW);
-    digitalWrite(_enable, LOW);
+    digitalWrite(_in1, HIGH);
+    digitalWrite(_in2, HIGH);
+    digitalWrite(_enable, HIGH);
 }
 
 void Motor::down()
 {
-    digitalWrite(_enable, LOW);
+    digitalWrite(_enable, HIGH);
+    delay(100);
     digitalWrite(_in1, HIGH);
     digitalWrite(_in2, LOW);
-    digitalWrite(_enable, HIGH);
+    delay(100);
+    digitalWrite(_enable, LOW);
 }
 
 void Motor::up()
 {
-    digitalWrite(_enable, LOW);
+    digitalWrite(_enable, HIGH);
+    delay(100);
     digitalWrite(_in1, LOW);
     digitalWrite(_in2, HIGH);
-    digitalWrite(_enable, HIGH);
+    delay(100);
+    digitalWrite(_enable, LOW);
 }
