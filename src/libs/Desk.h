@@ -36,7 +36,7 @@ public:
     void processWsRequest();            // process the request from client
     void processCommandRequest();       // handle requests command coming from client
     void processConfigurationRequest(); // handle requests command coming from client
-    void setConfigurationItem(int localVal, int newValue, String nameSpace);
+
     // Websocket Data
     // Find the required sizing here; https://arduinojson.org/v6/assistant/
     StaticJsonDocument<1024> _wsData;

@@ -39,8 +39,8 @@ void Desk::readPersistedConfig()
     _presetStandingHeight4 = _configurationMemory->getInt(_PRESET_HEIGHT4, 110);
 
     // Limits and offsets
-    _rollOffset = _configurationMemory->getInt(_ROLL_OFFSET, 0);
-    _rollLimit = _configurationMemory->getInt(_ROLL_LIMIT, 1);
+    _rollOffset = _configurationMemory->getInt(_ROLL_OFFSET, 180);
+    _rollLimit = _configurationMemory->getInt(_ROLL_LIMIT, 2);
     _pitchOffset = _configurationMemory->getInt(_PITCH_OFFSET, 1);
     _pitchLimit = _configurationMemory->getInt(_PITCH_LIMIT, 0);
 
@@ -153,7 +153,8 @@ void Desk::calibrateLevels(int calibrationHeight)
 void Desk::rightUp()
 {
     updateSensorReadings();
-    _motorLeft.up();
+    _motorRight.up();
+    _motorRight.enable();
     String message = "Up to " + String(_targetHeight) + "cm";
     _om->goingUp(_currentHeight, _roll, message);
 }
@@ -162,6 +163,7 @@ void Desk::leftUp()
 {
     updateSensorReadings();
     _motorLeft.up();
+    _motorLeft.enable();
     String message = "Up " + String(_targetHeight) + "cm";
     _om->goingUp(_currentHeight, _roll, message);
 }
@@ -169,7 +171,8 @@ void Desk::leftUp()
 void Desk::rightDown()
 {
     updateSensorReadings();
-    _motorLeft.down();
+    _motorRight.down();
+    _motorRight.enable();
     String message = "Down to " + String(_targetHeight) + "cm";
     _om->goingDown(_currentHeight, _roll, message);
 }
@@ -178,6 +181,7 @@ void Desk::leftDown()
 {
     updateSensorReadings();
     _motorLeft.down();
+    _motorLeft.enable();
     String message = "Down to " + String(_targetHeight) + "cm";
     _om->goingDown(_currentHeight, _roll, message);
 }
@@ -189,6 +193,8 @@ void Desk::up()
     updateSensorReadings();
     _motorLeft.up();
     _motorRight.up();
+    _motorLeft.enable();
+    _motorRight.enable();
     String message = "Up to " + String(_targetHeight) + "cm";
     _om->goingUp((_currentHeight), _roll, message);
 }
@@ -198,9 +204,12 @@ void Desk::up(int ms)
     updateSensorReadings();
     _motorLeft.up();
     _motorRight.up();
+    _motorLeft.enable();
+    _motorRight.enable();
     String message = "Up by " + String(ms) + "cm";
     _om->goingUp((_currentHeight), _roll, message);
     delay(ms);
+    _motorRight.disable();
 }
 
 void Desk::down()
@@ -208,6 +217,8 @@ void Desk::down()
     updateSensorReadings();
     _motorLeft.down();
     _motorRight.down();
+    _motorLeft.enable();
+    _motorRight.enable();
     String message = "Down to " + String(_targetHeight) + "cm";
     _om->goingDown(_currentHeight, _roll, message);
 }
@@ -217,9 +228,12 @@ void Desk::down(int ms)
     updateSensorReadings();
     _motorLeft.down();
     _motorRight.down();
+    _motorLeft.enable();
+    _motorRight.enable();
     String message = "Down by " + String(ms) + "cm";
     _om->goingDown(_currentHeight, _roll, message);
     delay(ms);
+    _motorRight.disable();
 }
 
 void Desk::stop()
@@ -397,56 +411,62 @@ void Desk::processConfigurationRequest()
     {
 
     case wsMessageCommands::PRESET_HEIGHT1:
-        setConfigurationItem(_presetStandingHeight1, _wsRequest["data"]["parameters"].as<int>(), _PRESET_HEIGHT1);
+        _presetStandingHeight1 = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_PRESET_HEIGHT2, _presetStandingHeight1);
         break;
 
     case wsMessageCommands::PRESET_HEIGHT2:
-        setConfigurationItem(_presetStandingHeight2, _wsRequest["data"]["parameters"].as<int>(), _PRESET_HEIGHT2);
+        _presetStandingHeight2 = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_PRESET_HEIGHT2, _presetStandingHeight2);
         break;
 
     case wsMessageCommands::PRESET_HEIGHT3:
-        setConfigurationItem(_presetStandingHeight3, _wsRequest["data"]["parameters"].as<int>(), _PRESET_HEIGHT3);
+
+        _presetStandingHeight3 = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_PRESET_HEIGHT3, _presetStandingHeight3);
         break;
 
     case wsMessageCommands::PRESET_HEIGHT4:
-        setConfigurationItem(_presetStandingHeight4, _wsRequest["data"]["parameters"].as<int>(), _PRESET_HEIGHT4);
+        _presetStandingHeight4 = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_PRESET_HEIGHT4, _presetStandingHeight4);
         break;
 
     case wsMessageCommands::ROLL_OFFSET:
-        setConfigurationItem(_rollOffset, _wsRequest["data"]["parameters"].as<int>(), _ROLL_OFFSET);
+        _rollOffset = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_ROLL_OFFSET, _rollOffset);
         break;
 
     case wsMessageCommands::ROLL_LIMIT:
-        setConfigurationItem(_rollLimit, _wsRequest["data"]["parameters"].as<int>(), _ROLL_LIMIT);
+        _rollLimit = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_ROLL_LIMIT, _rollLimit);
         break;
 
     case wsMessageCommands::PITCH_OFFSET:
-        setConfigurationItem(_pitchOffset, _wsRequest["data"]["parameters"].as<int>(), _PITCH_OFFSET);
+
+        _pitchOffset = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_PITCH_OFFSET, _pitchOffset);
         break;
 
     case wsMessageCommands::PITCH_LIMIT:
-        setConfigurationItem(_pitchLimit, _wsRequest["data"]["parameters"].as<int>(), _PITCH_LIMIT);
+        _pitchLimit = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_PITCH_LIMIT, _pitchLimit);
         break;
 
     case wsMessageCommands::SAFETY_ENABLED:
-        setConfigurationItem(_safetyEnabled, _wsRequest["data"]["parameters"].as<int>(), _SAFETY_ENABLED);
+        _safetyEnabled = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_SAFETY_ENABLED, _safetyEnabled);
         break;
 
     case wsMessageCommands::MIN_HEIGHT:
-        setConfigurationItem(_seatedHeight, _wsRequest["data"]["parameters"].as<int>(), _MIN_HEIGHT);
+        _seatedHeight = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_MIN_HEIGHT, _seatedHeight);
         break;
 
     case wsMessageCommands::MAX_HEIGHT:
-        setConfigurationItem(_fullStandingHeight, _wsRequest["data"]["parameters"].as<int>(), _MAX_HEIGHT);
+        _fullStandingHeight = _wsRequest["data"]["parameters"].as<int>();
+        _configurationMemory->setInt(_MIN_HEIGHT, _fullStandingHeight);
         break;
     }
-}
-
-void Desk::setConfigurationItem(int localVal, int newValue, String nameSpace)
-{
-    localVal = _wsRequest["data"]["parameters"].as<int>();
-    _configurationMemory->setInt(nameSpace, localVal);
-    Serial.printf("Preset level saved @%d \n", _configurationMemory->getInt(nameSpace), localVal);
 }
 
 void Desk::processCommandRequest()

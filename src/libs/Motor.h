@@ -8,6 +8,8 @@ class Motor
 public:
     Motor();
     Motor(int enable, int in1, int in2);
+    void enable();
+    void disable();
     void up();
     void stop();
     void down();

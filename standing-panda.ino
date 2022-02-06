@@ -6,6 +6,7 @@
 #include "src/libs/Desk.h"
 #include "src/libs/LocalESPStorage.h"
 #include "src/libs/ConfigurationMemory.h"
+#include "src/libs/Button.h"
 #include "ApplicationConfig.h"
 #include <Wire.h>
 
@@ -15,6 +16,13 @@
 #define enB 15
 #define in1 26
 #define in2 13
+
+// Buttons
+
+#define whiteButtonPin 25
+#define blueButtonPin 16
+#define redButtonPin 12
+#define toggleSwitchPin 36
 
 // I2c
 
@@ -35,7 +43,6 @@ int loopCount = 0;
 int history = 0;
 
 // Managers
-
 TwoWire i2c = TwoWire(0); // Must be initialized using the defined sda & scl.
 OledManager om(&i2c);
 LocalESPStorage localESPStorage;
@@ -44,6 +51,8 @@ ConfigurationMemory configurationMemory; // Initialize the persisted configurati
 VL53L0x tof(&i2c);
 MPU6050 tiltSensor(&i2c);
 Desk deskControls(enA, enB, in1, in2, &om, &tof, &tiltSensor, &webserver, &configurationMemory);
+Button whiteButton(whiteButtonPin);
+Button blueButton(blueButtonPin);
 
 void setup()
 {
@@ -80,12 +89,27 @@ void loop()
 
   delay(100);
 
-  // Check the height levels every 1 second.
-  loopCount++;
-  if (loopCount == 10)
+  if (whiteButton.isPressed())
   {
-    // deskControls.updateSensorReadings();
-    loopCount = 0;
+    deskControls.goToHeight(deskControls._seatedHeight);
+    history = 99;
+  }
+
+  if (blueButton.isPressed())
+  {
+    deskControls.goToHeight(deskControls._fullStandingHeight);
+    history = 99;
+  }
+
+  // Check the height levels every 1 second when a connection is active.
+  if (webserver._connectionCount > 0)
+  {
+    loopCount++;
+    if (loopCount == 10)
+    {
+      deskControls.updateSensorReadings();
+      loopCount = 0;
+    }
   }
 
   // If someone is connected then print 'Hi' else print the IP address.
